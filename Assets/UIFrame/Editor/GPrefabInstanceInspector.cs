@@ -208,10 +208,10 @@ public class GPrefabInstanceInspector : Editor
             script += "相对于Frame的路径:\n";
             script += "    \"" + GUtility.GetPath(frame.transform, firstTarget.transform) + "\"\t//" + GetTypes(firstTarget.prefab.transform) + "\n";
         }
-        //script += "\n";
-        //GWidget prefab = firstTarget.prefab;
-        //script += "内部结构:\n";
-        //script += GetTreeString(prefab.transform,"    ");
+        script += "\n";
+        GWidget prefab = firstTarget.prefab;
+        script += "内部结构:\n";
+        script += GetTreeString(prefab.transform,"    ");
         return script;
     }
 
