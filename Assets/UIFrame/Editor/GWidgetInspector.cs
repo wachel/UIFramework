@@ -27,9 +27,6 @@ public class GWidgetInspector : Editor
                         if (prefab) {
                             //add prefab instance
                             GameObject obj = new GameObject(widget.name);
-                            if(widget.defaultName != "") {
-                                obj.name = widget.defaultName;
-                            }
                             obj.AddComponent<RectTransform>();
                             GPrefabInstance gpi = obj.AddComponent<GPrefabInstance>();
                             gpi.prefab = prefab;
@@ -296,6 +293,12 @@ public class GWidgetInspector : Editor
             }
         }
 
+
+        if(widget.gameObject.scene.name == null) {
+            GUILayout.Label("说明:" + widget.descption);
+        } else {
+            widget.descption = EditorGUILayout.TextField("说明:", widget.descption);
+        }
         base.OnInspectorGUI();
 
         GUILayout.Label("Export Property List");
@@ -304,6 +307,8 @@ public class GWidgetInspector : Editor
         eventList.DoLayoutList();
         GUILayout.Label("Export To Script List");
         exportToScriptList.DoLayoutList();
+
+        
     }
 
     

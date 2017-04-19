@@ -13,6 +13,7 @@ public class PrefabLayoutSync : MonoBehaviour
     public RectTransform shadow;
 #if UNITY_EDITOR
     void Update () {
+        //注意，shadow第一个子节点为shadow的Preview，是隐藏的，需要跳过去
         if (!Application.isPlaying) {
             while (transform.childCount > shadow.childCount - 1) {
                 DestroyImmediate(transform.GetChild(shadow.childCount - 1).gameObject);
@@ -21,6 +22,12 @@ public class PrefabLayoutSync : MonoBehaviour
                 GameObject obj = new GameObject("__element__");
                 obj.AddComponent<RectTransform>();
                 obj.transform.SetParent(transform, false);
+            }
+
+            for (int i = 0; i < shadow.childCount - 1; i++) {
+                RectTransform child = transform.GetChild(i) as RectTransform;
+                RectTransform shadowChild = shadow.GetChild(i + 1) as RectTransform;
+                child.gameObject.SetActive(shadowChild.gameObject.activeSelf);
             }
             LayoutRebuilder.ForceRebuildLayoutImmediate(transform as RectTransform);
 

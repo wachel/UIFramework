@@ -4,6 +4,11 @@ using UnityEngine;
 
 /// <summary>
 /// 窗口的最外层节点。拖到此节点下的Widget会自动替换成PrefabInstance，启动时会遍历子节点，将PefabInstance恢复成Widget
+/// 目的：
+/// 1.起标记作用，让改节点的所有子节点知道需要从Widget转换到PrefabInstance
+/// 2.编辑界面时预览
+/// 3.游戏启动时调用DoInstantiate()实例化
+/// 4.生成部分View代码
 /// </summary>
 
 public class GFrame : MonoBehaviour

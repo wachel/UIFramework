@@ -11,16 +11,20 @@ using UnityEngine;
 
 public class GWidget : MonoBehaviour
 {
-    public string defaultName;          //默认名称
     public bool fixXSize;               //是否是固定大小的如icon，方便编辑
     public bool fixYSize;
     public RectTransform containerPanel;//容器Panel，如果是Layout等，需要设置此节点
     public bool isDynamicContainer;     //是否是动态容器，如背包列表，邮件列表等
 
     [HideInInspector]
+    public string descption;            //描述
+
+    [HideInInspector]
     public List<GExportPorpertyInfo> propertyInfos = new List<GExportPorpertyInfo>();   //要导出的属性，可以在编辑界面时设置此值
+
     [HideInInspector]
     public List<GExportEventInfo> eventInfos = new List<GExportEventInfo>();            //要导出的动作，可以在预览界面是进行简单交互
+
     [HideInInspector]
     public List<GExportToScriptInfo> exportToScriptInfos = new List<GExportToScriptInfo>();//要导出到程序的变量
 

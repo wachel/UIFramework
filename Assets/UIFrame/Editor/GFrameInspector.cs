@@ -24,41 +24,43 @@ public class GFrameInspector:Editor
         return name.Replace('.','_').Replace('/','_').Replace(' ','_').Replace("(","").Replace(")","");
     }
 
-    static string CreateClassScript(GFrame frame)
-    {
-        string result = "";
-        result += "using UnityEngine;\n";
-        result += "using UnityEngine.UI;\n\n";
-        result += "//该文件由GFrameInspector.cs自动生成，请不要手动修改\n";
-        result += "namespace UIFrame{\n";
-        result += "    public class " + GetName(frame.name) + "\n";
-        result += "    {\n";
-
-        //属性列表
-        ForEachProperty(frame, (GPrefabInstance loader, GExportToScriptInfo property) => {
-            result += "        public " + property.type.Replace('+','.') + " " + GetName(loader,property) + ";";
-            result += "    \n";
-        });
-         
-        //绑定函数
-        result += "        public void BindProperty(Transform frame)\n";
-        result += "        {\n";
-        ForEachProperty(frame, (GPrefabInstance loader, GExportToScriptInfo property) => {
-            result += "            " + GetName(loader, property) + " = frame.Find(\"" + GUtility.GetPath(frame.transform,property.target.transform) + "\").GetComponent<" + property.type + ">();";
-            result += "\n";
-        });
-        result += "        }\n";
-
-        result += "    }\n}\n";
-        return result;
-    }
+    //static string CreateClassScript(GFrame frame)
+    //{
+    //    string result = "";
+    //    result += "using UnityEngine;\n";
+    //    result += "using UnityEngine.UI;\n\n";
+    //    result += "//该文件由GFrameInspector.cs自动生成，请不要手动修改\n";
+    //    result += "namespace UIFrame{\n";
+    //    result += "    public class " + GetName(frame.name) + "\n";
+    //    result += "    {\n";
+    //
+    //    //属性列表
+    //    ForEachProperty(frame, (GPrefabInstance loader, GExportToScriptInfo property) => {
+    //        result += "        public " + property.type.Replace('+','.') + " " + GetName(loader,property) + ";";
+    //        result += "    \n";
+    //    });
+    //     
+    //    //绑定函数
+    //    result += "        public void BindProperty(Transform frame)\n";
+    //    result += "        {\n";
+    //    ForEachProperty(frame, (GPrefabInstance loader, GExportToScriptInfo property) => {
+    //        result += "            " + GetName(loader, property) + " = frame.Find(\"" + GUtility.GetPath(frame.transform,property.target.transform) + "\").GetComponent<" + property.type + ">();";
+    //        result += "\n";
+    //    });
+    //    result += "        }\n";
+    //
+    //    result += "    }\n}\n";
+    //    return result;
+    //}
 
     static string CreateDeclearScript(GFrame frame)
     {
         string result = "";
-        ForEachProperty(frame, (GPrefabInstance loader, GExportToScriptInfo property) => {
-            result += "public " + property.type.Replace('+', '.') + " " + GetName(loader, property) + ";";
-            result += "\n";
+        ForEachProperty(frame, (GPrefabInstance loader, GRuntimeLib lib) => {
+            if (lib) {
+                result += "public " + lib.GetType().Name.Replace('+', '.') + " " + GetName(loader.name) + ";";
+                result += "\n";
+            }
         });
         return result + "\n";
     }
@@ -69,15 +71,17 @@ public class GFrameInspector:Editor
         //绑定函数
         result += "public void BindProperty(Transform frame)\n";
         result += "{\n";
-        ForEachProperty(frame, (GPrefabInstance loader, GExportToScriptInfo property) => {
-            result += "    " + GetName(loader, property) + " = frame.Find(\"" + GUtility.GetPath(frame.transform, property.target.transform) + "\").GetComponent<" + property.type + ">();";
-            result += "\n";
+        ForEachProperty(frame, (GPrefabInstance loader, GRuntimeLib lib) => {
+            if (lib) {
+                result += "    " + GetName(loader.name) + " = frame.Find(\"" + GUtility.GetPath(frame.transform, loader.transform) + "\").GetComponent<" + lib.GetType().Name + ">();";
+                result += "\n";
+            }
         });
         result += "}\n";
         return result;
     }
 
-    static void ForEachProperty(GFrame frame, System.Action<GPrefabInstance, GExportToScriptInfo> fun)
+    static void ForEachProperty(GFrame frame, System.Action<GPrefabInstance,GRuntimeLib> fun)
     {
         //GWidget[] widgets = frame.transform.GetComponentsInChildren<GWidget>();
         //for (int i = 0; i < widgets.Length; i++) {
@@ -88,9 +92,9 @@ public class GFrameInspector:Editor
 
         GPrefabInstance[] loaders = frame.transform.GetComponentsInChildren<GPrefabInstance>();
         for (int i = 0; i < loaders.Length; i++) {
-            for(int p = 0; p < loaders[i].prefab.exportToScriptInfos.Count; p++) {
-                fun(loaders[i], loaders[i].prefab.exportToScriptInfos[p]);
-            }
+            //for(int p = 0; p < loaders[i].prefab.exportToScriptInfos.Count; p++) {
+                fun(loaders[i],loaders[i].prefab.GetComponent<GRuntimeLib>());
+            //}
         }
     }
 
