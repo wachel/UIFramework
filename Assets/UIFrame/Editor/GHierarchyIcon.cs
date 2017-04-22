@@ -17,7 +17,7 @@ class GHierarchyIcon
         style.normal.textColor = new Color(0.2f,0.2f,0.8f);
         // Init
         //texture = AssetDatabase.LoadAssetAtPath("Assets/Textures/greenpoint.png", typeof(Texture2D)) as Texture2D;
-        texture = CreateTexture(16,16);
+        //texture = CreateTexture(16,16);
         EditorApplication.hierarchyWindowItemOnGUI += HierarchyItemCB;
     }
      
@@ -32,6 +32,9 @@ class GHierarchyIcon
                 r.x += textSize.x;
                 r.y += 4;
                 r.width = 12;
+                if(texture == null) {
+                    texture = CreateTexture(16,16);
+                }
                 GUI.Label(r, texture);
             }
         }
