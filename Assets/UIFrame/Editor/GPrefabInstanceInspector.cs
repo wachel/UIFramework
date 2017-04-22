@@ -4,13 +4,14 @@ using UnityEngine;
 using UnityEditor;
 using System.Reflection;
 using UnityEngine.UI;
+using System.Linq;
 
 [CanEditMultipleObjects]
 [CustomEditor(typeof(GPrefabInstance))]
 public class GPrefabInstanceInspector : Editor
 {
     GPrefabInstance firstTarget;
-    GPrefabInstance[] allTargets; 
+    GPrefabInstance[] allTargets;
 
     public void OnEnable()
     {
@@ -21,15 +22,14 @@ public class GPrefabInstanceInspector : Editor
         }
     }
 
-    static bool hasMultipleDifferentValues(GPrefabInstance[] targets,string key,System.Type type,object defaultValue)
+    static bool hasMultipleDifferentValues(GPrefabInstance[] targets, string key, System.Type type, object defaultValue)
     {
         object firstValue = targets[0].GetValue(key, type, defaultValue);
         for (int i = 0; i < targets.Length; i++) {
             object val = targets[i].GetValue(key, type, defaultValue);
-            if(firstValue == null) {
+            if (firstValue == null) {
                 return val == null;
-            }
-            else if (!firstValue.Equals(val)) {
+            } else if (!firstValue.Equals(val)) {
                 return true;
             }
         }
@@ -43,8 +43,8 @@ public class GPrefabInstanceInspector : Editor
         //检查能否同时编辑
         bool canMultipleEdit = true;
         if (serializedObject.isEditingMultipleObjects) {
-            for(int i = 1; i< allTargets.Length; i++) {
-                if(allTargets[i].prefab != firstTarget.prefab) {//只有全部是相同的prefab才能同时编辑
+            for (int i = 1; i < allTargets.Length; i++) {
+                if (allTargets[i].prefab != firstTarget.prefab) {//只有全部是相同的prefab才能同时编辑
                     canMultipleEdit = false;
                 }
             }
@@ -70,7 +70,7 @@ public class GPrefabInstanceInspector : Editor
             }
         }
 
-        if (GUILayout.Button("Edit", GUILayout.Width(50))){
+        if (GUILayout.Button("Edit", GUILayout.Width(50))) {
             GWidgetInspector.StartEditWidget(firstTarget.prefab);
         }
 
@@ -80,10 +80,10 @@ public class GPrefabInstanceInspector : Editor
             GWidget prefab = firstTarget.prefab;
             //属性设置
             bool bChangeAnyOne = false;
-            for(int i = 0;i<prefab.propertyInfos.Count; i++) {
+            for (int i = 0; i < prefab.propertyInfos.Count; i++) {
                 string propertyName = prefab.propertyInfos[i].propertyName;
                 string key = propertyName;
-                if(prefab.propertyInfos[i].target != prefab.gameObject) {//如果属性的目标不是prefab根节点的话，要在key上携带目标节点的名称
+                if (prefab.propertyInfos[i].target != prefab.gameObject) {//如果属性的目标不是prefab根节点的话，要在key上携带目标节点的名称
                     key = prefab.propertyInfos[i].target.name + "." + key;
                 }
                 PropertyInfo pi = null;
@@ -97,7 +97,7 @@ public class GPrefabInstanceInspector : Editor
                     MonoBehaviour mb = (MonoBehaviour)prefab.propertyInfos[i].target.GetComponent(cn[0]);
                     pi = mb.GetType().GetProperty(cn[1]);
                     defaultValue = pi.GetValue(mb, null);
-                } else if(cn.Length == 1){
+                } else if (cn.Length == 1) {
                     pi = prefab.propertyInfos[i].target.GetType().GetProperty(cn[0]);
                     defaultValue = pi.GetValue(prefab.propertyInfos[i].target, null);
                 }
@@ -106,12 +106,16 @@ public class GPrefabInstanceInspector : Editor
                         EditorGUI.showMixedValue = true;
                     }
                     EditorGUI.BeginChangeCheck();
+
                     object oldValue = firstTarget.GetValue(key, pi.PropertyType, defaultValue);
                     object newValue = null;
                     if (pi.PropertyType == typeof(bool)) {
                         newValue = EditorGUILayout.Toggle(label, (bool)oldValue);
                     } else if (pi.PropertyType == typeof(string)) {
-                        newValue = EditorGUILayout.TextField(label, (string)oldValue);
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label(label,GUILayout.Width(100));
+                        newValue = EditorGUILayout.TextArea((string)oldValue);
+                        GUILayout.EndHorizontal();
                     } else if (pi.PropertyType == typeof(Sprite)) {
                         newValue = EditorGUILayout.ObjectField(label, (Object)oldValue, typeof(Sprite), false);
                     } else if (pi.PropertyType.IsEnum) {
@@ -122,10 +126,15 @@ public class GPrefabInstanceInspector : Editor
                         newValue = EditorGUILayout.IntField(label, (int)oldValue);
                     } else if (pi.PropertyType == typeof(float)) {
                         newValue = EditorGUILayout.FloatField(label, (float)oldValue);
-                    }else if(pi.PropertyType == typeof(Vector2)) {
+                    } else if (pi.PropertyType == typeof(Vector2)) {
                         newValue = EditorGUILayout.Vector2Field(label, (Vector2)oldValue);
                     } else if (pi.PropertyType == typeof(Vector3)) {
                         newValue = EditorGUILayout.Vector3Field(label, (Vector3)oldValue);
+                    } else if(pi.PropertyType == typeof(string[])) {
+                        List<Dropdown.OptionData> opts = oldValue == null ? (new List<Dropdown.OptionData>()) : (List<Dropdown.OptionData>)oldValue;
+                        string s = string.Join("\n", (from opt in opts select opt.text).ToArray());
+                        s = EditorGUILayout.TextArea(s,GUILayout.Height(100));
+                        newValue = s == ""?new List<Dropdown.OptionData>():new List<Dropdown.OptionData>(from t in s.Split('\n') select new Dropdown.OptionData(t));
                     }
                     EditorGUI.showMixedValue = false;
                     if (EditorGUI.EndChangeCheck()) {
@@ -173,7 +182,7 @@ public class GPrefabInstanceInspector : Editor
 
         if (!serializedObject.isEditingMultipleObjects) {
             EditorGUILayout.Space();
-        
+
             EditorGUILayout.TextArea(GetScriptString2(firstTarget));
         }
     }
@@ -211,16 +220,16 @@ public class GPrefabInstanceInspector : Editor
         script += "\n";
         GWidget prefab = firstTarget.prefab;
         script += "内部结构:\n";
-        script += GetTreeString(prefab.transform,"    ");
+        script += GetTreeString(prefab.transform, "    ");
         return script;
     }
 
-    static string GetTreeString(Transform trans,string prefix)
+    static string GetTreeString(Transform trans, string prefix)
     {
         string result = "";
-        for(int i = 0; i<trans.childCount; i++) {
-            result += prefix + "\"" +trans.GetChild(i).name + "\"\t//" + GetTypes(trans) + "\n";
-            result += GetTreeString(trans.GetChild(i),prefix + "    ");
+        for (int i = 0; i < trans.childCount; i++) {
+            result += prefix + "\"" + trans.GetChild(i).name + "\"\t//" + GetTypes(trans.GetChild(i)) + "\n";
+            result += GetTreeString(trans.GetChild(i), prefix + "    ");
         }
         return result;
     }
@@ -229,8 +238,8 @@ public class GPrefabInstanceInspector : Editor
     {
         string result = "";
         Component[] components = trans.GetComponents<Component>();
-        for(int i = 0; i < components.Length; i++) {
-            if(!(components[i] is Transform) && !(components[i] is RectTransform) && !(components[i] is CanvasRenderer) && !(components[i] is GWidget) && !(components[i] is GPrefabInstance)) {
+        for (int i = 0; i < components.Length; i++) {
+            if (!(components[i] is Transform) && !(components[i] is RectTransform) && !(components[i] is CanvasRenderer) && !(components[i] is GWidget) && !(components[i] is GPrefabInstance)) {
                 result += "<" + components[i].GetType().Name + ">";
             }
         }

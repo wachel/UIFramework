@@ -255,6 +255,8 @@ public class PrefabKeyValue
             } else if (type == typeof(Color)) {
                 Color c = (Color)val;
                 vectorValue = new Vector4(c.r, c.g, c.b, c.a);
+            } else {
+                stringValue = JsonUtility.ToJson(val);
             }
         } else {
             stringValue = "";
@@ -283,8 +285,9 @@ public class PrefabKeyValue
             return (Vector3)vectorValue;
         } else if (type == typeof(Color)) {
             return new Color(vectorValue.x, vectorValue.y, vectorValue.z, vectorValue.w);
-        }
-        return null;
+        } else {
+            return JsonUtility.FromJson(stringValue, type);
+        };
     }
 }
 

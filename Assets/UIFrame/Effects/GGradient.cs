@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-[AddComponentMenu("UI/Effects/Gradient")]
+[AddComponentMenu("UI/Effects/G Gradient")]
 public class Gradient : BaseMeshEffect
 {
     public Color32 topColor = Color.white;

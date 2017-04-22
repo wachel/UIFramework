@@ -57,7 +57,7 @@ public class GWidgetInspector : Editor
             GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("", GUILayout.Width(20));
             EditorGUILayout.LabelField("object", GUILayout.Width(80));
-            EditorGUILayout.LabelField("property",GUILayout.Width(100));
+            EditorGUILayout.LabelField("property", GUILayout.Width(100));
             GUILayout.FlexibleSpace();
             EditorGUILayout.LabelField("rename", GUILayout.Width(120));
             GUILayout.EndHorizontal();
@@ -77,43 +77,22 @@ public class GWidgetInspector : Editor
                 List<string> names = new List<string>();
                 int selected = 0;
                 names.Add("active");
-                if (widget.propertyInfos[index].target.GetComponent<Text>()) {
-                    names.Add("Text.text");
-                    names.Add("Text.color");
-                    names.Add("Text.fontSize");
-                }
-                if (widget.propertyInfos[index].target.GetComponent<Image>()) {
-                    names.Add("Image.sprite");
-                    names.Add("Image.color");
-                    names.Add("Image.enabled");
-                }
-                if (widget.propertyInfos[index].target.GetComponent<GDynamicContainer>()) {
-                    names.Add("GDynamicContainer.elementNumForTest");
-                }
-                if (widget.propertyInfos[index].target.GetComponent<GGridLayout>()) {
-                    names.Add("GGridLayout.cellWidth");
-                    names.Add("GGridLayout.cellHeight");
-                }
-                if (widget.propertyInfos[index].target.GetComponent<GButtonEnable>()) {
-                    names.Add("GButtonEnable.enable");
-                }
-                if (widget.propertyInfos[index].target.GetComponent<GridLayoutGroup>()) {
-                    names.Add("GridLayoutGroup.cellSize");
-                    names.Add("GridLayoutGroup.spacing");
-                    names.Add("GridLayoutGroup.startCorner");
-                    names.Add("GridLayoutGroup.childAlignment");
-                    names.Add("GridLayoutGroup.startAxis");
-                }
-                if (widget.propertyInfos[index].target.GetComponent<GSpriteID>()) {
-                    names.Add("GSpriteID.id");
+                Component[] components = widget.propertyInfos[index].target.GetComponents<Component>();
+                foreach (var item in components) {
+                    if (!(item is RectTransform) && !(item is CanvasRenderer) && !(item is GWidget)) {
+                        System.Reflection.PropertyInfo[] properties = item.GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                        foreach (var prop in properties) {
+                            names.Add(item.GetType().Name + "/" + prop.Name);
+                        }
+                    }
                 }
                 for (int i = 0; i < names.Count; i++) {
-                    if (names[i] == widget.propertyInfos[index].propertyName) {
+                    if (widget.propertyInfos[index].propertyName != null && names[i] == widget.propertyInfos[index].propertyName.Replace('.', '/')) {
                         selected = i;
                     }
                 }
                 if (names.Count > 0) {
-                    widget.propertyInfos[index].propertyName = names[EditorGUILayout.Popup(selected, names.ToArray())];
+                    widget.propertyInfos[index].propertyName = names[EditorGUILayout.Popup(selected, names.ToArray())].Replace('/', '.');
                     widget.propertyInfos[index].rename = EditorGUILayout.TextField(widget.propertyInfos[index].rename, GUILayout.Width(120));
                 }
                 if (EditorGUI.EndChangeCheck()) {
@@ -207,7 +186,7 @@ public class GWidgetInspector : Editor
             if (widget.exportToScriptInfos[index].target) {
                 List<string> types = new List<string>();
                 Component[] components = widget.exportToScriptInfos[index].target.GetComponents<Component>();
-                for(int i = 0; i<components.Length; i++) {
+                for (int i = 0; i < components.Length; i++) {
                     types.Add(components[i].GetType().Name);
                 }
                 int selected = 0;
@@ -269,13 +248,12 @@ public class GWidgetInspector : Editor
             if (GUILayout.Button("编辑组件")) {
                 StartEditWidget(widget);
             }
-        }
-        else if(widget.gameObject.scene.name == ""){
+        } else if (widget.gameObject.scene.name == "") {
             GUILayout.BeginHorizontal();
             bool bClose = false;
             if (GUILayout.Button("完成编辑")) {
                 Object parentObject = PrefabUtility.GetPrefabParent(widget);
-                PrefabUtility.ReplacePrefab(widget.gameObject , parentObject, ReplacePrefabOptions.ConnectToPrefab);//apply
+                PrefabUtility.ReplacePrefab(widget.gameObject, parentObject, ReplacePrefabOptions.ConnectToPrefab);//apply
                 bClose = true;
             }
             if (GUILayout.Button("放弃修改")) {
@@ -286,7 +264,7 @@ public class GWidgetInspector : Editor
             if (bClose) {
                 EditorSceneManager.CloseScene(widget.gameObject.scene, true);
                 int sceneCount = EditorSceneManager.sceneCount;
-                if(sceneCount >= 1) {
+                if (sceneCount >= 1) {
                     //EditorSceneManager.GetSceneAt(0).
                 }
                 return;
@@ -294,7 +272,7 @@ public class GWidgetInspector : Editor
         }
 
 
-        if(widget.gameObject.scene.name == null) {
+        if (widget.gameObject.scene.name == null) {
             GUILayout.Label("说明:" + widget.descption);
         } else {
             widget.descption = EditorGUILayout.TextField("说明:", widget.descption);
@@ -308,8 +286,8 @@ public class GWidgetInspector : Editor
         GUILayout.Label("Export To Script List");
         exportToScriptList.DoLayoutList();
 
-        
+
     }
 
-    
+
 }
